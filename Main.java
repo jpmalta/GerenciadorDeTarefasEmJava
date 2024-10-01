@@ -2,6 +2,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -10,37 +11,39 @@ public class Main {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        int opcao;
+        int opcao = -1;
 
-        do {
-            System.out.println("Menu:");
-            System.out.println("1. Criar nova tarefa");
-            System.out.println("2. Listar todas as tarefas");
-            System.out.println("3. Filtrar tarefas por status");
-            System.out.println("0. Sair");
-            System.out.print("Escolha uma opção: ");
-            opcao = scanner.nextInt();
-            scanner.nextLine(); // Consumir a quebra de linha
+        while (true) {
+            try {
+                System.out.println("Menu:");
+                System.out.println("1. Criar nova tarefa");
+                System.out.println("2. Listar todas as tarefas");
+                System.out.println("3. Filtrar tarefas por status");
+                System.out.println("0. Sair");
+                System.out.print("Escolha uma opção: ");
+                
+                opcao = Integer.parseInt(scanner.nextLine());
 
-            switch (opcao) {
-                case 1:
-                    criarTarefa(scanner); // Função para criar nova tarefa
-                    break;
-                case 2:
-                    listarTarefas(); // Função para listar todas as tarefas
-                    break;
-                case 3:
-                    filtrarTarefasPorStatus(scanner); // Função para filtrar tarefas por status
-                    break;
-                case 0:
-                    System.out.println("Saindo...");
-                    break;
-                default:
-                    System.out.println("Opção inválida! Tente novamente.");
+                switch (opcao) {
+                    case 1:
+                        criarTarefa(scanner); // Função para criar nova tarefa
+                        break;
+                    case 2:
+                        listarTarefas(); // Função para listar todas as tarefas
+                        break;
+                    case 3:
+                        filtrarTarefasPorStatus(scanner); // Função para filtrar tarefas por status
+                        break;
+                    case 0:
+                        System.out.println("Saindo...");
+                        return; // Sai do programa
+                    default:
+                        System.out.println("Opção inválida! Tente novamente.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida! Por favor, insira um número.");
             }
-        } while (opcao != 0);
-
-        scanner.close();
+        }
     }
 
     // Função para criar uma nova tarefa
@@ -53,12 +56,24 @@ public class Main {
 
         LocalDate dataVencimento = solicitarData(scanner);
 
-        System.out.println("Selecione o status da tarefa:");
-        System.out.println("1. Pendente");
-        System.out.println("2. Em progresso");
-        System.out.println("3. Concluída");
-        int statusOpcao = scanner.nextInt();
-        scanner.nextLine(); // Consumir a quebra de linha
+        int statusOpcao = -1;
+        while (statusOpcao < 1 || statusOpcao > 3) {
+            try {
+                System.out.println("Selecione o status da tarefa:");
+                System.out.println("1. Pendente");
+                System.out.println("2. Em progresso");
+                System.out.println("3. Concluída");
+                System.out.print("Escolha uma opção: ");
+                statusOpcao = Integer.parseInt(scanner.nextLine());
+
+                if (statusOpcao < 1 || statusOpcao > 3) {
+                    System.out.println("Opção inválida. Tente novamente.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida! Por favor, insira um número.");
+            }
+        }
+
         Status status = Status.PENDENTE;
         if (statusOpcao == 2) {
             status = Status.EM_PROGRESSO;
@@ -77,14 +92,12 @@ public class Main {
         LocalDate dataVencimento = null;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-M-d"); // Aceita formato sem zeros
 
-        boolean dataValida = false;
-        while (!dataValida) {
+        while (dataVencimento == null) {
             System.out.print("Digite a data de vencimento (YYYY-MM-DD): ");
             String data = scanner.nextLine();
             try {
                 // Faz o parsing aceitando entrada como "2024-10-2" e ajustando para "2024-10-02"
                 dataVencimento = LocalDate.parse(data, formatter);
-                dataValida = true; // Saímos do laço se a data for válida
             } catch (DateTimeParseException e) {
                 System.out.println("Data incorreta, digite novamente no formato correto (YYYY-MM-DD).");
             }
@@ -108,12 +121,25 @@ public class Main {
 
     // Função para filtrar tarefas por status
     private static void filtrarTarefasPorStatus(Scanner scanner) {
-        System.out.println("Selecione o status para filtrar:");
-        System.out.println("1. Pendente");
-        System.out.println("2. Em progresso");
-        System.out.println("3. Concluída");
-        int statusOpcao = scanner.nextInt();
-        scanner.nextLine(); // Consumir a quebra de linha
+        int statusOpcao = -1;
+
+        while (statusOpcao < 1 || statusOpcao > 3) {
+            try {
+                System.out.println("Selecione o status para filtrar:");
+                System.out.println("1. Pendente");
+                System.out.println("2. Em progresso");
+                System.out.println("3. Concluída");
+                System.out.print("Escolha uma opção: ");
+                statusOpcao = Integer.parseInt(scanner.nextLine());
+
+                if (statusOpcao < 1 || statusOpcao > 3) {
+                    System.out.println("Opção inválida. Tente novamente.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida! Por favor, insira um número.");
+            }
+        }
+
         Status status = Status.PENDENTE;
         if (statusOpcao == 2) {
             status = Status.EM_PROGRESSO;
