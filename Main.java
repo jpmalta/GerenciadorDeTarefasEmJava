@@ -2,7 +2,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -14,14 +13,9 @@ public class Main {
         int opcao = -1;
 
         while (true) {
+            exibirMenu(); // Chamada da função que exibe o menu
             try {
-                System.out.println("Menu:");
-                System.out.println("1. Criar nova tarefa");
-                System.out.println("2. Listar todas as tarefas");
-                System.out.println("3. Filtrar tarefas por status");
-                System.out.println("0. Sair");
                 System.out.print("Escolha uma opção: ");
-                
                 opcao = Integer.parseInt(scanner.nextLine());
 
                 switch (opcao) {
@@ -44,6 +38,15 @@ public class Main {
                 System.out.println("Entrada inválida! Por favor, insira um número.");
             }
         }
+    }
+
+    // Função que exibe o menu principal
+    private static void exibirMenu() {
+        System.out.println("\nMenu:");
+        System.out.println("1. Criar nova tarefa");
+        System.out.println("2. Listar todas as tarefas");
+        System.out.println("3. Filtrar tarefas por status");
+        System.out.println("0. Sair");
     }
 
     // Função para criar uma nova tarefa
