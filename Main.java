@@ -28,6 +28,9 @@ public class Main {
                     case 3:
                         filtrarTarefasPorStatus(scanner); // Função para filtrar tarefas por status
                         break;
+                    case 4:
+                        editarTarefa(scanner); // Chama a função de edição
+                        break;
                     case 0:
                         System.out.println("Saindo...");
                         return; // Sai do programa
@@ -46,6 +49,7 @@ public class Main {
         System.out.println("1. Criar nova tarefa");
         System.out.println("2. Listar todas as tarefas");
         System.out.println("3. Filtrar tarefas por status");
+        System.out.println("4. Editar tarefa");
         System.out.println("0. Sair");
     }
 
@@ -167,5 +171,60 @@ public class Main {
                 System.out.println("-------------------------");
             }
         }
+    }
+
+    // Função para editar uma tarefa existente
+    private static void editarTarefa(Scanner scanner) {
+        listarTarefas(); // Exibe a lista de tarefas para o usuário escolher
+
+        if (tarefas.isEmpty()) {
+            return; // Sai se não houver tarefas
+        }
+
+        System.out.print("Digite o número da tarefa que deseja editar: ");
+        int numeroTarefa = Integer.parseInt(scanner.nextLine()) - 1;
+
+        if (numeroTarefa < 0 || numeroTarefa >= tarefas.size()) {
+            System.out.println("Número de tarefa inválido.");
+            return;
+        }
+
+        Tarefa tarefaParaEditar = tarefas.get(numeroTarefa); // Seleciona a tarefa
+        System.out.println("Editando a tarefa: " + tarefaParaEditar.getTitulo());
+
+        System.out.print("Novo título (deixe em branco para não alterar): ");
+        String novoTitulo = scanner.nextLine();
+        if (!novoTitulo.isBlank()) {
+            tarefaParaEditar.setTitulo(novoTitulo);
+        }
+
+        System.out.print("Nova descrição (deixe em branco para não alterar): ");
+        String novaDescricao = scanner.nextLine();
+        if (!novaDescricao.isBlank()) {
+            tarefaParaEditar.setDescricao(novaDescricao);
+        }
+
+        System.out.print("Deseja alterar a data de vencimento? (s/n): ");
+        String alterarData = scanner.nextLine();
+        if (alterarData.equalsIgnoreCase("s")) {
+            LocalDate novaData = solicitarData(scanner);
+            tarefaParaEditar.setDataVencimento(novaData);
+        }
+
+        System.out.println("Selecione o novo status da tarefa:");
+        System.out.println("1. Pendente");
+        System.out.println("2. Em progresso");
+        System.out.println("3. Concluída");
+        int statusOpcao = Integer.parseInt(scanner.nextLine());
+
+        Status novoStatus = Status.PENDENTE;
+        if (statusOpcao == 2) {
+            novoStatus = Status.EM_PROGRESSO;
+        } else if (statusOpcao == 3) {
+            novoStatus = Status.CONCLUIDA;
+        }
+        tarefaParaEditar.setStatus(novoStatus);
+
+        System.out.println("Tarefa editada com sucesso!");
     }
 }

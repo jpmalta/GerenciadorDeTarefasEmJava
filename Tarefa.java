@@ -1,4 +1,6 @@
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -62,10 +64,7 @@ public class Tarefa {
     public static void listarTarefasFiltradas(List<Tarefa> tarefas, Status filtro) {
         for (Tarefa tarefa : tarefas) {
             if (filtro == null || tarefa.getStatus() == filtro) {
-                System.out.println("Título: " + tarefa.getTitulo());
-                System.out.println("Descrição: " + tarefa.getDescricao());
-                System.out.println("Data de Vencimento: " + tarefa.getDataVencimento());
-                System.out.println("Status: " + tarefa.getStatus());
+                tarefa.exibirTarefa();
                 System.out.println("---------------------------");
             }
         }
@@ -79,21 +78,44 @@ public class Tarefa {
         System.out.println("2. Tarefas Concluídas");
         System.out.println("3. Todas as Tarefas");
         System.out.print("Escolha uma opção: ");
-        int opcao = scanner.nextInt();
-    
-        switch (opcao) {
-            case 1:
-                listarTarefasFiltradas(tarefas, Status.PENDENTE);
-                break;
-            case 2:
-                listarTarefasFiltradas(tarefas, Status.CONCLUIDA);
-                break;
-            case 3:
-                listarTarefasFiltradas(tarefas, null);  // Ajuste aqui: usar a lista recebida
-                break;
 
-            default:
-                System.out.println("Opção inválida!");
+        int opcao;
+        try {
+            opcao = Integer.parseInt(scanner.nextLine());
+
+            switch (opcao) {
+                case 1:
+                    listarTarefasFiltradas(tarefas, Status.PENDENTE);
+                    break;
+                case 2:
+                    listarTarefasFiltradas(tarefas, Status.CONCLUIDA);
+                    break;
+                case 3:
+                    listarTarefasFiltradas(tarefas, null);
+                    break;
+                default:
+                    System.out.println("Opção inválida!");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Entrada inválida! Por favor, insira um número.");
         }
+    }
+
+    // Função para solicitar uma nova data de vencimento
+    public LocalDate solicitarData(Scanner scanner) {
+        LocalDate novaData = null;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd"); // Formato de data desejado
+
+        while (novaData == null) {
+            System.out.print("Digite a nova data de vencimento (formato: YYYY-MM-DD): ");
+            String dataStr = scanner.nextLine();
+
+            try {
+                novaData = LocalDate.parse(dataStr, formatter); // Converte a string para LocalDate
+            } catch (DateTimeParseException e) {
+                System.out.println("Data inválida! Por favor, use o formato correto (YYYY-MM-DD).");
+            }
+        }
+        return novaData;
     }
 }
