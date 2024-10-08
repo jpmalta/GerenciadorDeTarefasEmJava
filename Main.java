@@ -13,7 +13,8 @@ public class Main {
     public static void main(String[] args) {
         carregarTarefasDeArquivo(); // Carregar as tarefas salvas no arquivo
 
-        Scanner scanner = new Scanner(System.in);
+        // Usar Scanner com UTF-8
+        Scanner scanner = new Scanner(System.in, "UTF-8");
         int opcao = -1;
 
         while (true) {
@@ -231,40 +232,48 @@ public class Main {
             } else if (statusOpcao == 3) {
                 novoStatus = Status.CONCLUIDA;
             }
-            tarefa.setStatus(novoStatus);
 
+            tarefa.setStatus(novoStatus);
             System.out.println("Tarefa atualizada com sucesso!");
         } else {
-            System.out.println("Número de tarefa inválido.");
+            System.out.println("Tarefa não encontrada.");
         }
     }
 
-    // Função para salvar tarefas no arquivo de texto
-    private static void salvarTarefasNoArquivo() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO_TAREFAS))) {
-            for (Tarefa tarefa : tarefas) {
-                writer.write(tarefa.toCSV());
-                writer.newLine();
-            }
-            System.out.println("Tarefas salvas no arquivo com sucesso!");
-        } catch (IOException e) {
-            System.out.println("Erro ao salvar tarefas no arquivo: " + e.getMessage());
-        }
-    }
-
-    // Função para carregar tarefas do arquivo de texto
+    // Função para carregar as tarefas do arquivo
     private static void carregarTarefasDeArquivo() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(ARQUIVO_TAREFAS))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(ARQUIVO_TAREFAS), "UTF-8"))) {
             String linha;
             while ((linha = reader.readLine()) != null) {
-                Tarefa tarefa = Tarefa.fromCSV(linha);
-                tarefas.add(tarefa);
+                String[] dados = linha.split(";");
+                if (dados.length == 4) {
+                    String titulo = dados[0];
+                    String descricao = dados[1];
+                    LocalDate dataVencimento = LocalDate.parse(dados[2]);
+                    Status status = Status.valueOf(dados[3]);
+
+                    Tarefa tarefa = new Tarefa(titulo, descricao, dataVencimento, status);
+                    tarefas.add(tarefa);
+                }
             }
-            System.out.println("Tarefas carregadas do arquivo com sucesso!");
-        } catch (FileNotFoundException e) {
-            System.out.println("Arquivo de tarefas não encontrado. Nenhuma tarefa carregada.");
         } catch (IOException e) {
-            System.out.println("Erro ao carregar tarefas do arquivo: " + e.getMessage());
+            System.out.println("Nenhum arquivo de tarefas encontrado. Um novo arquivo será criado.");
+        }
+    }
+
+    // Função para salvar as tarefas no arquivo
+    private static void salvarTarefasNoArquivo() {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(ARQUIVO_TAREFAS), "UTF-8"))) {
+            for (Tarefa tarefa : tarefas) {
+                writer.write(tarefa.getTitulo() + ";" +
+                        tarefa.getDescricao() + ";" +
+                        tarefa.getDataVencimento() + ";" +
+                        tarefa.getStatus());
+                writer.newLine();
+            }
+            System.out.println("Tarefas salvas com sucesso!");
+        } catch (IOException e) {
+            System.out.println("Erro ao salvar as tarefas: " + e.getMessage());
         }
     }
 }
