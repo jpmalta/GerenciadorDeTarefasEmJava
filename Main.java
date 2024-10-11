@@ -38,6 +38,10 @@ public class Main {
                         editarTarefa(scanner); // Função para editar tarefas
                         salvarTarefasNoArquivo(); // Salvar no arquivo após editar
                         break;
+                    case 5:
+                        removerTarefa(scanner); // Função para remover tarefa
+                        salvarTarefasNoArquivo(); // Salvar no arquivo após remover
+                        break;
                     case 0:
                         System.out.println("Saindo...");
                         salvarTarefasNoArquivo(); // Salvar no arquivo ao sair
@@ -58,6 +62,7 @@ public class Main {
         System.out.println("2. Listar todas as tarefas");
         System.out.println("3. Filtrar tarefas por status");
         System.out.println("4. Editar tarefa");
+        System.out.println("5. Remover tarefa");
         System.out.println("0. Sair");
     }
 
@@ -234,46 +239,55 @@ public class Main {
             }
 
             tarefa.setStatus(novoStatus);
-            System.out.println("Tarefa atualizada com sucesso!");
+            System.out.println("Tarefa editada com sucesso!");
         } else {
-            System.out.println("Tarefa não encontrada.");
+            System.out.println("Número de tarefa inválido.");
         }
     }
 
-    // Função para carregar as tarefas do arquivo
+    // Função para remover uma tarefa existente
+    private static void removerTarefa(Scanner scanner) {
+        listarTarefas(); // Exibe todas as tarefas para escolha
+        System.out.print("Digite o número da tarefa que deseja remover: ");
+        int indice = Integer.parseInt(scanner.nextLine()) - 1;
+
+        if (indice >= 0 && indice < tarefas.size()) {
+            tarefas.remove(indice);
+            System.out.println("Tarefa removida com sucesso!");
+        } else {
+            System.out.println("Número de tarefa inválido.");
+        }
+    }
+
+    // Função para salvar as tarefas no arquivo de persistência
+    private static void salvarTarefasNoArquivo() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO_TAREFAS))) {
+            for (Tarefa tarefa : tarefas) {
+                writer.write(tarefa.toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Erro ao salvar tarefas: " + e.getMessage());
+        }
+    }
+
+    // Função para carregar as tarefas do arquivo de persistência
     private static void carregarTarefasDeArquivo() {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(ARQUIVO_TAREFAS), "UTF-8"))) {
+        File arquivo = new File(ARQUIVO_TAREFAS);
+        if (!arquivo.exists()) {
+            return; // Se o arquivo não existe, não há nada para carregar
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(ARQUIVO_TAREFAS))) {
             String linha;
             while ((linha = reader.readLine()) != null) {
-                String[] dados = linha.split(";");
-                if (dados.length == 4) {
-                    String titulo = dados[0];
-                    String descricao = dados[1];
-                    LocalDate dataVencimento = LocalDate.parse(dados[2]);
-                    Status status = Status.valueOf(dados[3]);
-
-                    Tarefa tarefa = new Tarefa(titulo, descricao, dataVencimento, status);
+                Tarefa tarefa = Tarefa.fromString(linha); // Conversão da linha de volta para objeto Tarefa
+                if (tarefa != null) {
                     tarefas.add(tarefa);
                 }
             }
         } catch (IOException e) {
-            System.out.println("Nenhum arquivo de tarefas encontrado. Um novo arquivo será criado.");
-        }
-    }
-
-    // Função para salvar as tarefas no arquivo
-    private static void salvarTarefasNoArquivo() {
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(ARQUIVO_TAREFAS), "UTF-8"))) {
-            for (Tarefa tarefa : tarefas) {
-                writer.write(tarefa.getTitulo() + ";" +
-                        tarefa.getDescricao() + ";" +
-                        tarefa.getDataVencimento() + ";" +
-                        tarefa.getStatus());
-                writer.newLine();
-            }
-            System.out.println("Tarefas salvas com sucesso!");
-        } catch (IOException e) {
-            System.out.println("Erro ao salvar as tarefas: " + e.getMessage());
+            System.out.println("Erro ao carregar tarefas: " + e.getMessage());
         }
     }
 }
