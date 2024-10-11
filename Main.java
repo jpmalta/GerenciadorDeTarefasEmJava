@@ -107,17 +107,24 @@ public class Main {
         System.out.println("Tarefa criada com sucesso!");
     }
 
-    // Função para solicitar e validar a data de vencimento
+   // Função para solicitar e validar a data de vencimento
     private static LocalDate solicitarData(Scanner scanner) {
         LocalDate dataVencimento = null;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-M-d"); // Aceita formato sem zeros
-
+        LocalDate dataAtual = LocalDate.now(); // Obter a data atual do sistema
+    
         while (dataVencimento == null) {
             System.out.print("Digite a data de vencimento (YYYY-MM-DD): ");
             String data = scanner.nextLine();
             try {
                 // Faz o parsing aceitando entrada como "2024-10-2" e ajustando para "2024-10-02"
                 dataVencimento = LocalDate.parse(data, formatter);
+    
+                // Verifica se a data de vencimento é anterior à data atual
+                if (dataVencimento.isBefore(dataAtual)) {
+                    System.out.println("A data de vencimento não pode ser anterior à data atual (" + dataAtual + ").");
+                    dataVencimento = null; // Reseta a data para forçar nova entrada
+                }
             } catch (DateTimeParseException e) {
                 System.out.println("Data incorreta, digite novamente no formato correto (YYYY-MM-DD).");
             }
