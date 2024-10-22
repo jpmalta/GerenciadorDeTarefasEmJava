@@ -54,13 +54,34 @@ public class Main {
 
     // Função para criar uma nova tarefa
     private static void criarTarefa(Scanner scanner) {
-        System.out.print("Digite o título da tarefa: ");
-        String titulo = scanner.nextLine();
+        String titulo;
+        while (true) {
+            System.out.print("Digite o título da tarefa: ");
+            titulo = scanner.nextLine().trim();
+            if (!titulo.isEmpty()) {
+                break; // Título válido
+            }
+            System.out.println("O título não pode estar vazio. Tente novamente.");
+        }
 
-        System.out.print("Digite a descrição da tarefa: ");
-        String descricao = scanner.nextLine();
+        String descricao;
+        while (true) {
+            System.out.print("Digite a descrição da tarefa: ");
+            descricao = scanner.nextLine().trim();
+            if (!descricao.isEmpty()) {
+                break; // Descrição válida
+            }
+            System.out.println("A descrição não pode estar vazia. Tente novamente.");
+        }
 
-        LocalDate dataVencimento = solicitarData(scanner);
+        LocalDate dataVencimento;
+        while (true) {
+            dataVencimento = solicitarData(scanner);
+            if (!dataVencimento.isBefore(LocalDate.now())) {
+                break; // Data válida
+            }
+            System.out.println("A data de vencimento não pode ser no passado. Tente novamente.");
+        }
 
         int statusOpcao = -1;
         while (statusOpcao < 1 || statusOpcao > 3) {
@@ -92,6 +113,7 @@ public class Main {
         tarefas.add(novaTarefa);
         System.out.println("Tarefa criada com sucesso!");
     }
+
 
     // Função para solicitar e validar a data de vencimento
     private static LocalDate solicitarData(Scanner scanner) {
