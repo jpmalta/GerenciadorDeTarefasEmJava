@@ -23,6 +23,8 @@ public class Main {
                 Tarefa tarefa = Tarefa.fromCSV(linha); // Conversão da linha de volta para objeto Tarefa
                 if (tarefa != null) {
                     tarefas.add(tarefa);
+                } else {
+                    System.out.println("Tarefa inválida encontrada no arquivo e ignorada.");
                 }
             }
             System.out.println("Tarefas carregadas com sucesso!");
@@ -112,8 +114,11 @@ public class Main {
             System.out.print("Digite a data de vencimento (YYYY-MM-DD): ");
             String data = scanner.nextLine();
             try {
-                // Faz o parsing aceitando entrada como "2024-10-2" e ajustando para "2024-10-02"
                 dataVencimento = LocalDate.parse(data, formatter);
+                if (dataVencimento.isBefore(LocalDate.now())) {
+                    System.out.println("A data de vencimento não pode ser no passado. Tente novamente.");
+                    dataVencimento = null; // Reseta para pedir novamente
+                }
             } catch (DateTimeParseException e) {
                 System.out.println("Data incorreta, digite novamente no formato correto (YYYY-MM-DD).");
             }
@@ -252,6 +257,11 @@ public class Main {
     // Função para remover uma tarefa existente
     private static void removerTarefa(Scanner scanner) {
         try {
+            if (tarefas.isEmpty()) {
+                System.out.println("Não há tarefas para remover.");
+                return; // Retorna se não houver tarefas
+            }
+
             listarTarefas(); // Exibe todas as tarefas para escolha
             System.out.print("Digite o número da tarefa que deseja remover: ");
             int indice = Integer.parseInt(scanner.nextLine()) - 1;
