@@ -10,48 +10,34 @@ public class Main {
     private static List<Tarefa> tarefas = new ArrayList<>(); // Lista de tarefas
     private static final String ARQUIVO_TAREFAS = "tarefas.txt"; // Nome do arquivo de persistência
 
-    public static void main(String[] args) {
-        carregarTarefasDeArquivo(); // Carregar as tarefas salvas no arquivo
+    private static void carregarTarefasDeArquivo() {
+        File arquivo = new File(ARQUIVO_TAREFAS);
+        if (!arquivo.exists()) {
+            return; // Se o arquivo não existe, não há nada para carregar
+        }
 
-        // Usar Scanner com UTF-8
-        Scanner scanner = new Scanner(System.in, "UTF-8");
-        int opcao = -1;
-
-        while (true) {
-            exibirMenu(); // Chamada da função que exibe o menu
-            try {
-                System.out.print("Escolha uma opção: ");
-                opcao = Integer.parseInt(scanner.nextLine());
-
-                switch (opcao) {
-                    case 1:
-                        criarTarefa(scanner); // Função para criar nova tarefa
-                        salvarTarefasNoArquivo(); // Salvar no arquivo após criar
-                        break;
-                    case 2:
-                        listarTarefas(); // Função para listar todas as tarefas
-                        break;
-                    case 3:
-                        filtrarTarefasPorStatus(scanner); // Função para filtrar tarefas por status
-                        break;
-                    case 4:
-                        editarTarefa(scanner); // Função para editar tarefas
-                        salvarTarefasNoArquivo(); // Salvar no arquivo após editar
-                        break;
-                    case 5:
-                        removerTarefa(scanner); // Função para remover tarefa
-                        salvarTarefasNoArquivo(); // Salvar no arquivo após remover
-                        break;
-                    case 0:
-                        System.out.println("Saindo...");
-                        salvarTarefasNoArquivo(); // Salvar no arquivo ao sair
-                        return; // Sai do programa
-                    default:
-                        System.out.println("Opção inválida! Tente novamente.");
+        try (BufferedReader reader = new BufferedReader(new FileReader(ARQUIVO_TAREFAS))) {
+            String linha;
+            while ((linha = reader.readLine()) != null) {
+                Tarefa tarefa = Tarefa.fromCSV(linha); // Usando fromCSV ao invés de fromString
+                if (tarefa != null) {
+                    tarefas.add(tarefa);
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Entrada inválida! Por favor, insira um número.");
             }
+        } catch (IOException e) {
+            System.out.println("Erro ao carregar tarefas: " + e.getMessage());
+        }
+    }
+
+    // Função que salva tarefas no arquivo
+    private static void salvarTarefasNoArquivo() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO_TAREFAS))) {
+            for (Tarefa tarefa : tarefas) {
+                writer.write(tarefa.toCSV()); // Usando toCSV ao invés de toString
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Erro ao salvar tarefas: " + e.getMessage());
         }
     }
 
@@ -259,35 +245,43 @@ public class Main {
         }
     }
 
-    // Função para salvar as tarefas no arquivo de persistência
-    private static void salvarTarefasNoArquivo() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO_TAREFAS))) {
-            for (Tarefa tarefa : tarefas) {
-                writer.write(tarefa.toString());
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.out.println("Erro ao salvar tarefas: " + e.getMessage());
-        }
-    }
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        carregarTarefasDeArquivo(); // Carrega tarefas ao iniciar
 
-    // Função para carregar as tarefas do arquivo de persistência
-    private static void carregarTarefasDeArquivo() {
-        File arquivo = new File(ARQUIVO_TAREFAS);
-        if (!arquivo.exists()) {
-            return; // Se o arquivo não existe, não há nada para carregar
-        }
+        int opcao;
+        do {
+            exibirMenu();
+            System.out.print("Escolha uma opção: ");
+            opcao = Integer.parseInt(scanner.nextLine());
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(ARQUIVO_TAREFAS))) {
-            String linha;
-            while ((linha = reader.readLine()) != null) {
-                Tarefa tarefa = Tarefa.fromString(linha); // Conversão da linha de volta para objeto Tarefa
-                if (tarefa != null) {
-                    tarefas.add(tarefa);
-                }
+            switch (opcao) {
+                case 1:
+                    criarTarefa(scanner);
+                    salvarTarefasNoArquivo(); // Salva após criar
+                    break;
+                case 2:
+                    listarTarefas();
+                    break;
+                case 3:
+                    filtrarTarefasPorStatus(scanner);
+                    break;
+                case 4:
+                    editarTarefa(scanner);
+                    salvarTarefasNoArquivo(); // Salva após editar
+                    break;
+                case 5:
+                    removerTarefa(scanner);
+                    salvarTarefasNoArquivo(); // Salva após remover
+                    break;
+                case 0:
+                    System.out.println("Saindo...");
+                    break;
+                default:
+                    System.out.println("Opção inválida. Tente novamente.");
             }
-        } catch (IOException e) {
-            System.out.println("Erro ao carregar tarefas: " + e.getMessage());
-        }
+        } while (opcao != 0);
+
+        scanner.close();
     }
 }
