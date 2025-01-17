@@ -10,17 +10,50 @@ public class Main {
     private static List<Tarefa> tarefas = new ArrayList<>(); // Lista de tarefas
     private static final String ARQUIVO_TAREFAS = "tarefas.txt"; // Nome do arquivo de persistência
 
-   // Função para carregar as tarefas do arquivo de persistência
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        carregarTarefasDeArquivo(); // Carrega tarefas ao iniciar
+
+        while (true) {
+            try {
+                exibirMenu();
+                int opcao = solicitarInteiro(scanner, "Escolha uma opção: ", 0, 5);
+                switch (opcao) {
+                    case 1 -> {
+                        criarTarefa(scanner);
+                        salvarTarefasNoArquivo(); // Salva após criar
+                    }
+                    case 2 -> listarTarefas();
+                    case 3 -> filtrarTarefasPorStatus(scanner);
+                    case 4 -> {
+                        editarTarefa(scanner);
+                        salvarTarefasNoArquivo(); // Salva após editar
+                    }
+                    case 5 -> {
+                        removerTarefa(scanner);
+                        salvarTarefasNoArquivo(); // Salva após remover
+                    }
+                    case 0 -> {
+                        System.out.println("Saindo...");
+                        scanner.close();
+                        return; // Encerra o programa
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Ocorreu um erro inesperado: " + e.getMessage());
+            }
+        }
+    }
+
+    // Função para carregar as tarefas do arquivo
     private static void carregarTarefasDeArquivo() {
         File arquivo = new File(ARQUIVO_TAREFAS);
-        if (!arquivo.exists()) {
-            return; // Se o arquivo não existe, não há nada para carregar
-        }
+        if (!arquivo.exists()) return;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(ARQUIVO_TAREFAS))) {
             String linha;
             while ((linha = reader.readLine()) != null) {
-                Tarefa tarefa = Tarefa.fromCSV(linha); // Conversão da linha de volta para objeto Tarefa
+                Tarefa tarefa = Tarefa.fromCSV(linha);
                 if (tarefa != null) {
                     tarefas.add(tarefa);
                 } else {
@@ -30,12 +63,10 @@ public class Main {
             System.out.println("Tarefas carregadas com sucesso!");
         } catch (IOException e) {
             System.out.println("Erro ao carregar tarefas: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("Ocorreu um erro ao carregar as tarefas: " + e.getMessage());
         }
     }
 
-    // Função para salvar as tarefas no arquivo de persistência
+    // Função para salvar as tarefas no arquivo
     private static void salvarTarefasNoArquivo() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO_TAREFAS))) {
             for (Tarefa tarefa : tarefas) {
@@ -47,7 +78,6 @@ public class Main {
             System.out.println("Erro ao salvar tarefas: " + e.getMessage());
         }
     }
-
 
     // Função que exibe o menu principal
     private static void exibirMenu() {
@@ -62,258 +92,138 @@ public class Main {
 
     // Função para criar uma nova tarefa
     private static void criarTarefa(Scanner scanner) {
-        try {
-            System.out.print("Digite o título da tarefa: ");
-            String titulo = scanner.nextLine();
+        System.out.print("Digite o título da tarefa: ");
+        String titulo = scanner.nextLine();
 
-            System.out.print("Digite a descrição da tarefa: ");
-            String descricao = scanner.nextLine();
+        System.out.print("Digite a descrição da tarefa: ");
+        String descricao = scanner.nextLine();
 
-            LocalDate dataVencimento = solicitarData(scanner);
+        LocalDate dataVencimento = solicitarData(scanner);
 
-            int statusOpcao = -1;
-            while (statusOpcao < 1 || statusOpcao > 3) {
-                try {
-                    System.out.println("Selecione o status da tarefa:");
-                    System.out.println("1. Pendente");
-                    System.out.println("2. Em progresso");
-                    System.out.println("3. Concluída");
-                    System.out.print("Escolha uma opção: ");
-                    statusOpcao = Integer.parseInt(scanner.nextLine());
+        System.out.println("Selecione o status da tarefa:");
+        System.out.println("1. Pendente");
+        System.out.println("2. Em progresso");
+        System.out.println("3. Concluída");
+        int statusOpcao = solicitarInteiro(scanner, "Escolha uma opção: ", 1, 3);
 
-                    if (statusOpcao < 1 || statusOpcao > 3) {
-                        System.out.println("Opção inválida. Tente novamente.");
-                    }
-                } catch (NumberFormatException e) {
-                    System.out.println("Entrada inválida! Por favor, insira um número.");
-                }
-            }
-
-            Status status = Status.PENDENTE;
-            if (statusOpcao == 2) {
-                status = Status.EM_PROGRESSO;
-            } else if (statusOpcao == 3) {
-                status = Status.CONCLUIDA;
-            }
-
-            // Criar nova tarefa e adicionar à lista
-            Tarefa novaTarefa = new Tarefa(titulo, descricao, dataVencimento, status);
-            tarefas.add(novaTarefa);
-            System.out.println("Tarefa criada com sucesso!");
-        } catch (Exception e) {
-            System.out.println("Ocorreu um erro ao criar a tarefa: " + e.getMessage());
-        }
+        Status status = Status.values()[statusOpcao - 1];
+        Tarefa novaTarefa = new Tarefa(titulo, descricao, dataVencimento, status);
+        tarefas.add(novaTarefa);
+        System.out.println("Tarefa criada com sucesso!");
     }
 
     // Função para solicitar e validar a data de vencimento
     private static LocalDate solicitarData(Scanner scanner) {
-        LocalDate dataVencimento = null;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-M-d"); // Aceita formato sem zeros
-
-        while (dataVencimento == null) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        while (true) {
             System.out.print("Digite a data de vencimento (YYYY-MM-DD): ");
-            String data = scanner.nextLine();
+            String entrada = scanner.nextLine();
             try {
-                dataVencimento = LocalDate.parse(data, formatter);
-                if (dataVencimento.isBefore(LocalDate.now())) {
-                    System.out.println("A data de vencimento não pode ser no passado. Tente novamente.");
-                    dataVencimento = null; // Reseta para pedir novamente
+                LocalDate data = LocalDate.parse(entrada, formatter);
+                if (!data.isBefore(LocalDate.now())) {
+                    return data;
                 }
+                System.out.println("A data de vencimento não pode ser no passado.");
             } catch (DateTimeParseException e) {
-                System.out.println("Data incorreta, digite novamente no formato correto (YYYY-MM-DD).");
+                System.out.println("Data inválida. Use o formato YYYY-MM-DD.");
             }
         }
-        return dataVencimento;
     }
 
     // Função para listar todas as tarefas
     private static void listarTarefas() {
-        try {
-            if (tarefas.isEmpty()) {
-                System.out.println("Nenhuma tarefa encontrada.");
-            } else {
-                System.out.println("Lista de Tarefas:");
-                for (int i = 0; i < tarefas.size(); i++) {
-                    System.out.println("Tarefa " + (i + 1) + ":");
-                    tarefas.get(i).exibirTarefa();
-                    System.out.println("-------------------------");
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("Ocorreu um erro ao listar as tarefas: " + e.getMessage());
-        }
-    }
-
-    // Função para filtrar tarefas por status
-    private static void filtrarTarefasPorStatus(Scanner scanner) {
-        int statusOpcao = -1;
-
-        while (statusOpcao < 1 || statusOpcao > 3) {
-            try {
-                System.out.println("Selecione o status para filtrar:");
-                System.out.println("1. Pendente");
-                System.out.println("2. Em progresso");
-                System.out.println("3. Concluída");
-                System.out.print("Escolha uma opção: ");
-                statusOpcao = Integer.parseInt(scanner.nextLine());
-
-                if (statusOpcao < 1 || statusOpcao > 3) {
-                    System.out.println("Opção inválida. Tente novamente.");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Entrada inválida! Por favor, insira um número.");
-            }
-        }
-
-        Status status = Status.PENDENTE;
-        if (statusOpcao == 2) {
-            status = Status.EM_PROGRESSO;
-        } else if (statusOpcao == 3) {
-            status = Status.CONCLUIDA;
-        }
-
-        // Filtrar as tarefas pelo status selecionado
-        List<Tarefa> tarefasFiltradas = new ArrayList<>();
-        for (Tarefa tarefa : tarefas) {
-            if (tarefa.getStatus() == status) {
-                tarefasFiltradas.add(tarefa);
-            }
-        }
-
-        if (tarefasFiltradas.isEmpty()) {
-            System.out.println("Nenhuma tarefa encontrada com o status " + status + ".");
+        if (tarefas.isEmpty()) {
+            System.out.println("Nenhuma tarefa encontrada.");
         } else {
-            System.out.println("Tarefas com status " + status + ":");
-            for (Tarefa tarefa : tarefasFiltradas) {
-                tarefa.exibirTarefa();
+            System.out.println("Lista de Tarefas:");
+            for (int i = 0; i < tarefas.size(); i++) {
+                System.out.println("Tarefa " + (i + 1) + ":");
+                tarefas.get(i).exibirTarefa();
                 System.out.println("-------------------------");
             }
         }
     }
 
+    // Função para filtrar tarefas por status
+    private static void filtrarTarefasPorStatus(Scanner scanner) {
+        System.out.println("Selecione o status para filtrar:");
+        System.out.println("1. Pendente");
+        System.out.println("2. Em progresso");
+        System.out.println("3. Concluída");
+        int statusOpcao = solicitarInteiro(scanner, "Escolha uma opção: ", 1, 3);
+
+        Status status = Status.values()[statusOpcao - 1];
+        List<Tarefa> tarefasFiltradas = tarefas.stream()
+                .filter(tarefa -> tarefa.getStatus() == status)
+                .toList();
+
+        if (tarefasFiltradas.isEmpty()) {
+            System.out.println("Nenhuma tarefa encontrada com o status " + status + ".");
+        } else {
+            System.out.println("Tarefas com status " + status + ":");
+            tarefasFiltradas.forEach(tarefa -> {
+                tarefa.exibirTarefa();
+                System.out.println("-------------------------");
+            });
+        }
+    }
+
     // Função para editar uma tarefa existente
     private static void editarTarefa(Scanner scanner) {
-        try {
-            listarTarefas(); // Exibe todas as tarefas para escolha
-            System.out.print("Digite o número da tarefa que deseja editar: ");
-            int indice = Integer.parseInt(scanner.nextLine()) - 1;
+        listarTarefas();
+        int indice = solicitarInteiro(scanner, "Digite o número da tarefa que deseja editar: ", 1, tarefas.size()) - 1;
 
-            if (indice >= 0 && indice < tarefas.size()) {
-                Tarefa tarefa = tarefas.get(indice);
+        Tarefa tarefa = tarefas.get(indice);
 
-                System.out.print("Digite o novo título (ou deixe em branco para manter o atual): ");
-                String novoTitulo = scanner.nextLine();
-                if (!novoTitulo.isEmpty()) {
-                    tarefa.setTitulo(novoTitulo);
-                }
-
-                System.out.print("Digite a nova descrição (ou deixe em branco para manter a atual): ");
-                String novaDescricao = scanner.nextLine();
-                if (!novaDescricao.isEmpty()) {
-                    tarefa.setDescricao(novaDescricao);
-                }
-
-                System.out.print("Deseja alterar a data de vencimento? (s/n): ");
-                String alterarData = scanner.nextLine();
-                if (alterarData.equalsIgnoreCase("s")) {
-                    tarefa.setDataVencimento(solicitarData(scanner));
-                }
-
-                int statusOpcao = -1;
-                while (statusOpcao < 1 || statusOpcao > 3) {
-                    try {
-                        System.out.println("Selecione o novo status da tarefa:");
-                        System.out.println("1. Pendente");
-                        System.out.println("2. Em progresso");
-                        System.out.println("3. Concluída");
-                        System.out.print("Escolha uma opção: ");
-                        statusOpcao = Integer.parseInt(scanner.nextLine());
-
-                        if (statusOpcao < 1 || statusOpcao > 3) {
-                            System.out.println("Opção inválida. Tente novamente.");
-                        }
-                    } catch (NumberFormatException e) {
-                        System.out.println("Entrada inválida! Por favor, insira um número.");
-                    }
-                }
-
-                Status novoStatus = Status.PENDENTE;
-                if (statusOpcao == 2) {
-                    novoStatus = Status.EM_PROGRESSO;
-                } else if (statusOpcao == 3) {
-                    novoStatus = Status.CONCLUIDA;
-                }
-
-                tarefa.setStatus(novoStatus);
-                System.out.println("Tarefa editada com sucesso!");
-            } else {
-                System.out.println("Número de tarefa inválido.");
-            }
-        } catch (Exception e) {
-            System.out.println("Ocorreu um erro ao editar a tarefa: " + e.getMessage());
+        System.out.print("Digite o novo título (ou pressione Enter para manter): ");
+        String novoTitulo = scanner.nextLine();
+        if (!novoTitulo.isEmpty()) {
+            tarefa.setTitulo(novoTitulo);
         }
+
+        System.out.print("Digite a nova descrição (ou pressione Enter para manter): ");
+        String novaDescricao = scanner.nextLine();
+        if (!novaDescricao.isEmpty()) {
+            tarefa.setDescricao(novaDescricao);
+        }
+
+        System.out.print("Deseja alterar a data de vencimento? (s/n): ");
+        if (scanner.nextLine().equalsIgnoreCase("s")) {
+            tarefa.setDataVencimento(solicitarData(scanner));
+        }
+
+        System.out.println("Selecione o novo status:");
+        System.out.println("1. Pendente");
+        System.out.println("2. Em progresso");
+        System.out.println("3. Concluída");
+        int statusOpcao = solicitarInteiro(scanner, "Escolha uma opção: ", 1, 3);
+
+        tarefa.setStatus(Status.values()[statusOpcao - 1]);
+        System.out.println("Tarefa editada com sucesso!");
     }
 
-    // Função para remover uma tarefa existente
+    // Função para remover uma tarefa
     private static void removerTarefa(Scanner scanner) {
-        try {
-            if (tarefas.isEmpty()) {
-                System.out.println("Não há tarefas para remover.");
-                return; // Retorna se não houver tarefas
-            }
+        listarTarefas();
+        int indice = solicitarInteiro(scanner, "Digite o número da tarefa que deseja remover: ", 1, tarefas.size()) - 1;
 
-            listarTarefas(); // Exibe todas as tarefas para escolha
-            System.out.print("Digite o número da tarefa que deseja remover: ");
-            int indice = Integer.parseInt(scanner.nextLine()) - 1;
-
-            if (indice >= 0 && indice < tarefas.size()) {
-                tarefas.remove(indice);
-                System.out.println("Tarefa removida com sucesso!");
-            } else {
-                System.out.println("Número de tarefa inválido.");
-            }
-        } catch (Exception e) {
-            System.out.println("Ocorreu um erro ao remover a tarefa: " + e.getMessage());
-        }
+        tarefas.remove(indice);
+        System.out.println("Tarefa removida com sucesso!");
     }
 
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        carregarTarefasDeArquivo(); // Carrega tarefas ao iniciar
-
-        int opcao;
-        do {
-            exibirMenu();
-            System.out.print("Escolha uma opção: ");
-            opcao = Integer.parseInt(scanner.nextLine());
-
-            switch (opcao) {
-                case 1:
-                    criarTarefa(scanner);
-                    salvarTarefasNoArquivo(); // Salva após criar
-                    break;
-                case 2:
-                    listarTarefas();
-                    break;
-                case 3:
-                    filtrarTarefasPorStatus(scanner);
-                    break;
-                case 4:
-                    editarTarefa(scanner);
-                    salvarTarefasNoArquivo(); // Salva após editar
-                    break;
-                case 5:
-                    removerTarefa(scanner);
-                    salvarTarefasNoArquivo(); // Salva após remover
-                    break;
-                case 0:
-                    System.out.println("Saindo...");
-                    break;
-                default:
-                    System.out.println("Opção inválida. Tente novamente.");
+    // Função genérica para solicitar um inteiro com limites
+    private static int solicitarInteiro(Scanner scanner, String mensagem, int min, int max) {
+        while (true) {
+            try {
+                System.out.print(mensagem);
+                int valor = Integer.parseInt(scanner.nextLine());
+                if (valor >= min && valor <= max) {
+                    return valor;
+                }
+                System.out.println("Entrada fora do intervalo permitido (" + min + " a " + max + ").");
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida. Por favor, insira um número inteiro.");
             }
-        } while (opcao != 0);
-
-        scanner.close();
+        }
     }
 }
