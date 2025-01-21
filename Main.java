@@ -202,14 +202,39 @@ public class Main {
         System.out.println("Tarefa editada com sucesso!");
     }
 
-    // Função para remover uma tarefa
+   // Função para remover uma tarefa com confirmação
     private static void removerTarefa(Scanner scanner) {
+        // Listar as tarefas disponíveis
         listarTarefas();
-        int indice = solicitarInteiro(scanner, "Digite o número da tarefa que deseja remover: ", 1, tarefas.size()) - 1;
 
-        tarefas.remove(indice);
-        System.out.println("Tarefa removida com sucesso!");
+        if (tarefas.isEmpty()) {
+            System.out.println("Nenhuma tarefa disponível para remover.");
+            return;
+        }
+
+        // Solicitar o número da tarefa a ser removida
+        int indice = solicitarInteiro(scanner, 
+            "Digite o número da tarefa que deseja remover: ", 
+            1, tarefas.size()) - 1;
+
+        // Exibir os detalhes da tarefa selecionada para confirmação
+        Tarefa tarefaSelecionada = tarefas.get(indice);
+        System.out.println("\nVocê selecionou a tarefa:");
+        System.out.println("Título: " + tarefaSelecionada.getTitulo());
+        System.out.println("Descrição: " + tarefaSelecionada.getDescricao());
+        System.out.println("Data de vencimento: " + tarefaSelecionada.getDataVencimento());
+        System.out.println("Tem certeza de que deseja remover esta tarefa? (s/n)");
+
+        // Confirmar a remoção
+        String confirmacao = scanner.nextLine().toLowerCase();
+        if (confirmacao.equals("s")) {
+            tarefas.remove(indice);
+            System.out.println("Tarefa removida com sucesso!");
+        } else {
+            System.out.println("Remoção cancelada pelo usuário.");
+        }
     }
+
 
     // Função genérica para solicitar um inteiro com limites
     private static int solicitarInteiro(Scanner scanner, String mensagem, int min, int max) {
