@@ -137,7 +137,7 @@ public class Main {
         } else {
             System.out.println("Lista de Tarefas:");
             for (int i = 0; i < tarefas.size(); i++) {
-                System.out.println("/nTarefa " + (i + 1) + ":");
+                System.out.println("\nTarefa " + (i + 1) + ":");
                 tarefas.get(i).exibirTarefa();
                 System.out.println("-------------------------");
             }
@@ -150,7 +150,7 @@ public class Main {
         System.out.println("1. Pendente");
         System.out.println("2. Em progresso");
         System.out.println("3. Concluída");
-        int statusOpcao = solicitarInteiro(scanner, "/nEscolha uma opção: ", 1, 3);
+        int statusOpcao = solicitarInteiro(scanner, "Escolha uma opção: ", 1, 3);
 
         Status status = Status.values()[statusOpcao - 1];
         List<Tarefa> tarefasFiltradas = tarefas.stream()
