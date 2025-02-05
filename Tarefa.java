@@ -63,13 +63,23 @@ public class Tarefa {
     }
 
     // Método para carregar uma tarefa a partir de uma linha CSV
-    public static Tarefa fromCSV(String csv) {
-        String[] campos = csv.split(",");
-        String titulo = campos[0];
-        String descricao = campos[1];
-        LocalDate dataVencimento = LocalDate.parse(campos[2], DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        Status status = Status.valueOf(campos[3]);
-
-        return new Tarefa(titulo, descricao, dataVencimento, status);
+    public static Tarefa fromCSV(String linha) {
+        String[] partes = linha.split(",");
+        if (partes.length < 4) { // Verifica se tem pelo menos 4 partes esperadas
+            System.out.println("Erro: Linha inválida encontrada no arquivo: " + linha);
+            return null;
+        }
+    
+        try {
+            String titulo = partes[0].trim();
+            String descricao = partes[1].trim();
+            LocalDate dataVencimento = LocalDate.parse(partes[2].trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            Status status = Status.valueOf(partes[3].trim().toUpperCase());
+    
+            return new Tarefa(titulo, descricao, dataVencimento, status);
+        } catch (Exception e) {
+            System.out.println("Erro ao processar linha: " + linha + " - " + e.getMessage());
+            return null;
+        }
     }
 }
